@@ -43,20 +43,20 @@ When working with advanced generative models like **Nano Banana**, **GPT Image**
 ### Basic Workflow
 
 1. **Prepare Your Prompt**
-   Use plain text or a structured in JSON format. For example, long prompts copied from the web that do not fit and exceed the allowed number of characters in the text field.
+   - Use plain text or a structured in JSON format. For example, long prompts copied from the web that do not fit and exceed the allowed number of characters in the text field.
    
 
-2. **Paste into Prompt Imager**
+3. **Paste into Prompt Imager**
    - Open the web interface
    - Paste your JSON into the textarea
    - Select desired aspect ratio
 
-3. **Generate**
+4. **Generate**
    - Click "Generate Image"
    - Review the structured output
    - Verify readability at target display size
 
-4. **Download & Use**
+5. **Download & Use**
    - Click "Download PNG"
    - Attach the image to your AI model input
    - Use the reference instruction: *"Use text from reference image as guide for generation"*
