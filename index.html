@@ -7,20 +7,25 @@
 <title>JSON → Image</title>
 <style>
   :root {
-    --bg: #1a1a1f;
-    --panel: #232329;
-    --border: #34343c;
+    --bg: #020617;
+    --surface: #050b14;
+    --panel: #09111f;
+    --border: #172335;
     --text: #e8e8ec;
-    --muted: #9a9aa6;
-    --accent: #6c8cff;
-    --accent-hover: #5577ee;
-    --mono: 'SF Mono', 'Cascadia Code', 'Fira Code', Consolas, 'Courier New', monospace;
+    --muted: #94a3b8;
+    --accent: #7c3aed;
+    --accent-hover: #8b5cf6;
+    --success: #34d399;
+    --success-soft: #6ee7b7;
+    --shadow: rgba(52, 211, 153, 0.16);
+    --font-sans: 'Inter', 'Plus Jakarta Sans', 'Geist', system-ui, sans-serif;
   }
   * { box-sizing: border-box; }
   body {
     margin: 0;
-    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-    background: var(--bg);
+    font-family: var(--font-sans);
+    background-image: radial-gradient(circle at top right, rgba(52, 211, 153, 0.16), transparent 28%), linear-gradient(180deg, #020617 0%, #050b14 100%);
+    background-color: var(--bg);
     color: var(--text);
     display: flex;
     flex-direction: column;
@@ -30,18 +35,30 @@
     font-kerning: normal;
     font-weight: 600;
   }
-  h1 {
-    font-size: 1.4rem;
-    margin: 8px 0 4px;
+  .hero {
+    width: 100%;
+    max-width: 720px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    align-items: center;
     text-align: center;
+    padding: 24px 0 16px;
+  }
+  h1 {
+    font-size: clamp(2rem, 4vw, 3.25rem);
+    margin: 0;
+    line-height: 1.02;
+    letter-spacing: -0.03em;
+    font-weight: 700;
   }
   .subtitle {
-    font-size: 0.95rem;
+    font-size: 1rem;
     color: var(--muted);
-    margin: 8px 0 20px;
-    text-align: center;
+    margin: 0;
+    max-width: 760px;
+    line-height: 1.8;
     font-weight: 400;
-    line-height: 1.4;
   }
   .container {
     width: 100%;
@@ -73,30 +90,34 @@
     background: var(--accent);
     color: #fff;
     border: none;
-    border-radius: 10px;
-    padding: 12px 16px;
+    border-radius: 12px;
+    padding: 14px 18px;
     font-size: 15px;
     font-weight: 600;
     cursor: pointer;
-    transition: background 0.15s ease;
+    transition: transform 0.15s ease, background 0.15s ease, box-shadow 0.15s ease;
+    box-shadow: 0 18px 40px rgba(124, 58, 237, 0.15);
   }
-  button:hover { background: var(--accent-hover); }
+  button:hover {
+    background: var(--accent-hover);
+    transform: translateY(-1px);
+  }
   button.secondary {
-    background: var(--panel);
+    background: rgba(15, 23, 42, 0.95);
     color: var(--text);
-    border: 1px solid var(--border);
+    border: 1px solid rgba(148, 163, 184, 0.2);
   }
-  button.secondary:hover { background: #2b2b33; }
+  button.secondary:hover { background: rgba(17, 24, 39, 0.98); }
   button.aspect-btn {
-    background: var(--panel);
+    background: rgba(15, 23, 42, 0.88);
     color: var(--muted);
-    border: 1px solid var(--border);
+    border: 1px solid rgba(148, 163, 184, 0.16);
   }
-  button.aspect-btn:hover { background: #2b2b33; }
+  button.aspect-btn:hover { background: rgba(21, 28, 48, 0.94); }
   button.aspect-btn.active {
     background: var(--accent);
     color: #fff;
-    border-color: var(--accent);
+    border-color: rgba(124, 58, 237, 0.45);
   }
   button:disabled {
     opacity: 0.5;
@@ -130,15 +151,17 @@
 </style>
 </head>
 <body>
-  <h1>Prompt Imager 0.2</h1>
-  <p class="subtitle">Transform your long prompts into structured, shareable images.<br>Perfect for AI generators that support reference-based generation.</p>
+  <header class="hero">
+    <h1>Prompt Imager 0.2</h1>
+    <p class="subtitle">Transform your long prompts into structured, shareable images.<br>Perfect for AI generators that support reference-based generation.</p>
+  </header>
 
   <div class="container">
     <div class="row">
       <button id="clearBtn" class="secondary">Clear</button>
     </div>
 
-```
+
 <textarea id="jsonInput" placeholder='{"name": "Example", "details": {"type": "demo", "tags": ["one", "two"]}}'></textarea>
 
 <div class="row" id="aspectRow">
@@ -160,7 +183,6 @@
     <button id="downloadBtn" class="secondary">Download PNG</button>
   </div>
 </div>
-```
 
   </div>
 
