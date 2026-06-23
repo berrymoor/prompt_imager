@@ -5,6 +5,10 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>JSON → Image</title>
+<script>
+  window.va = window.va || function () { (window.vaq = window.vaq || []).push(arguments); };
+</script>
+<script defer src="/_vercel/insights/script.js"></script>
 <style>
   :root {
     --bg: #020617;
@@ -187,14 +191,6 @@
   </div>
 
 <script type="module">
-import { inject, track } from './node_modules/@vercel/analytics/dist/index.mjs';
-
-try {
-  inject();
-} catch (e) {
-  console.warn('Vercel Analytics could not be initialized:', e);
-}
-
 const jsonInput = document.getElementById('jsonInput');
 const generateBtn = document.getElementById('generateBtn');
 const downloadBtn = document.getElementById('downloadBtn');
