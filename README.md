@@ -2,24 +2,26 @@
 
 ## Overview
 
-**Prompt Imager** is a powerful utility that transforms complex JSON prompts into structured, visually optimized images. This tool is designed for content creators, video producers, and AI model operators who need to convert detailed text-based instructions into portable reference images suitable for use with modern generative AI systems.
+**Prompt Imager** is a powerful utility that transforms complex prompts—whether JSON-structured or plain text—into visually optimized images. This tool is designed for content creators, video producers, and AI model operators who need to convert detailed text-based instructions into portable reference images suitable for use with modern generative AI systems.
 
 ## Purpose
 
 When working with advanced generative models like **Nano Banana**, **GPT Image**, **Veo 3.1**, **Seedance 2**, and **Grok Imagine**, long and complex prompts often lose clarity or exceed token limits. Prompt Imager solves this by:
 
-- **Structuring** complex JSON data into human-readable hierarchical text format
-- **Visualizing** the structured content as high-resolution images
-- **Optimizing** font sizing and layout to ensure all content is clearly readable
+- **Processing** both JSON and plain text inputs for maximum flexibility
+- **Structuring** complex data into human-readable hierarchical text format
+- **Visualizing** content as high-resolution images with optimal readability
+- **Optimizing** font sizing and layout to fit all content within canvas
 - **Exporting** as portable PNG files for seamless integration with AI systems
 
 ## Key Features
 
-### JSON to Structured Text Conversion
-- Automatic JSON parsing with intelligent formatting
-- Hierarchical structure visualization with consistent indentation
-- Graceful handling of arrays, nested objects, and primitive values
-- Fallback to plain text mode if input is not valid JSON
+### Input Processing
+- **JSON Support**: Automatic parsing with intelligent hierarchical formatting
+- **Plain Text Support**: Direct processing of any long-form text input
+- **Smart Detection**: Automatically identifies input type and processes accordingly
+- **Graceful Degradation**: Invalid JSON treated as plain text without errors
+- **Flexible Indentation**: Preserves and visualizes structure consistently
 
 ### Intelligent Canvas Rendering
 - **Dynamic font scaling**: Automatically adjusts font size to fit all content within the canvas
@@ -117,9 +119,10 @@ This approach ensures consistent adherence to detailed specifications across mul
 
 1. Clone or download the repository
 2. Open `index.html` directly in a web browser (no server required)
-3. Paste your JSON prompt
-4. Select output format
-5. Generate and download
+3. Paste your content (JSON, structured text, or plain text prompts)
+4. Select desired aspect ratio
+5. Click "Generate Image"
+6. Download the PNG
 
 ## Use Cases
 
