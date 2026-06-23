@@ -1,0 +1,389 @@
+<!DOCTYPE html>
+
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>JSON → Image</title>
+<style>
+  :root {
+    --bg: #1a1a1f;
+    --panel: #232329;
+    --border: #34343c;
+    --text: #e8e8ec;
+    --muted: #9a9aa6;
+    --accent: #6c8cff;
+    --accent-hover: #5577ee;
+    --mono: 'SF Mono', 'Cascadia Code', 'Fira Code', Consolas, 'Courier New', monospace;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 24px 16px 60px;
+    min-height: 100vh;
+    font-kerning: normal;
+    font-weight: 600;
+  }
+  h1 {
+    font-size: 1.4rem;
+    margin: 8px 0 4px;
+    text-align: center;
+  }
+  .container {
+    width: 100%;
+    max-width: 720px;
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+  }
+  textarea {
+    width: 100%;
+    min-height: 220px;
+    background: var(--panel);
+    color: var(--text);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 12px;
+    font-family: var(--mono);
+    font-size: 13px;
+    resize: vertical;
+  }
+  .row {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+  }
+  button {
+    flex: 1;
+    min-width: 140px;
+    background: var(--accent);
+    color: #fff;
+    border: none;
+    border-radius: 10px;
+    padding: 12px 16px;
+    font-size: 15px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.15s ease;
+  }
+  button:hover { background: var(--accent-hover); }
+  button.secondary {
+    background: var(--panel);
+    color: var(--text);
+    border: 1px solid var(--border);
+  }
+  button.secondary:hover { background: #2b2b33; }
+  button.aspect-btn {
+    background: var(--panel);
+    color: var(--muted);
+    border: 1px solid var(--border);
+  }
+  button.aspect-btn:hover { background: #2b2b33; }
+  button.aspect-btn.active {
+    background: var(--accent);
+    color: #fff;
+    border-color: var(--accent);
+  }
+  button:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+  #error {
+    color: #ff7b7b;
+    font-size: 0.85rem;
+    min-height: 1.2em;
+  }
+  .preview-wrap {
+    display: none;
+    flex-direction: column;
+    align-items: center;
+    gap: 12px;
+    width: 100%;
+  }
+  .preview-wrap.visible { display: flex; }
+  canvas {
+    width: 100%;
+    max-width: 480px;
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    background: #fff;
+  }
+  .meta {
+    font-size: 0.8rem;
+    color: var(--muted);
+    text-align: center;
+  }
+</style>
+</head>
+<body>
+  <h1>JSON → Structured Text → Image</h1>
+
+  <div class="container">
+    <div class="row">
+      <button id="clearBtn" class="secondary">Clear</button>
+    </div>
+
+```
+<textarea id="jsonInput" placeholder='{"name": "Example", "details": {"type": "demo", "tags": ["one", "two"]}}'></textarea>
+
+<div class="row" id="aspectRow">
+  <button type="button" class="aspect-btn" data-w="1080" data-h="1920">9:16</button>
+  <button type="button" class="aspect-btn active" data-w="1920" data-h="1920">1:1</button>
+  <button type="button" class="aspect-btn" data-w="1920" data-h="1080">16:9</button>
+</div>
+
+<div class="row">
+  <button id="generateBtn">Generate Image</button>
+</div>
+
+<div id="error"></div>
+
+<div class="preview-wrap" id="previewWrap">
+  <canvas id="canvas" width="1920" height="1920"></canvas>
+  <div class="meta" id="meta"></div>
+  <div class="row">
+    <button id="downloadBtn" class="secondary">Download PNG</button>
+  </div>
+</div>
+```
+
+  </div>
+
+<script>
+const jsonInput = document.getElementById('jsonInput');
+const generateBtn = document.getElementById('generateBtn');
+const downloadBtn = document.getElementById('downloadBtn');
+const errorEl = document.getElementById('error');
+const previewWrap = document.getElementById('previewWrap');
+const canvas = document.getElementById('canvas');
+const ctx = canvas.getContext('2d');
+const metaEl = document.getElementById('meta');
+const clearBtn = document.getElementById('clearBtn');
+
+const aspectButtons = document.querySelectorAll('.aspect-btn');
+let selectedAspect = { w: 1920, h: 1920 };
+canvas.style.aspectRatio = `${selectedAspect.w} / ${selectedAspect.h}`;
+
+aspectButtons.forEach(btn => {
+  btn.addEventListener('click', () => {
+    aspectButtons.forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    selectedAspect = { w: parseInt(btn.dataset.w, 10), h: parseInt(btn.dataset.h, 10) };
+    canvas.style.aspectRatio = `${selectedAspect.w} / ${selectedAspect.h}`;
+  });
+});
+
+clearBtn.addEventListener('click', () => {
+  jsonInput.value = '';
+  errorEl.textContent = '';
+  previewWrap.classList.remove('visible');
+});
+
+// --- JSON -> structured text ---------------------------------------------
+function jsonToText(value, indent = 0, keyName = null) {
+  const pad = '  '.repeat(indent);
+  let lines = [];
+
+  if (value === null || value === undefined) {
+    lines.push(`${pad}${keyName !== null ? keyName + ': ' : ''}null`);
+  } else if (Array.isArray(value)) {
+    if (keyName !== null) lines.push(`${pad}${keyName}:`);
+    if (value.length === 0) {
+      lines.push(`${pad}  (empty list)`);
+    } else {
+      value.forEach((item, i) => {
+        if (typeof item === 'object' && item !== null) {
+          lines.push(`${pad}  - item ${i + 1}:`);
+          lines.push(...jsonToText(item, indent + 2));
+        } else {
+          lines.push(`${pad}  - ${formatPrimitive(item)}`);
+        }
+      });
+    }
+  } else if (typeof value === 'object') {
+    if (keyName !== null) lines.push(`${pad}${keyName}:`);
+    const entries = Object.entries(value);
+    if (entries.length === 0) {
+      lines.push(`${pad}  (empty)`);
+    } else {
+      entries.forEach(([k, v]) => {
+        if (typeof v === 'object' && v !== null) {
+          lines.push(...jsonToText(v, indent + (keyName !== null ? 1 : 0), k));
+        } else {
+          lines.push(`${pad}${keyName !== null ? '  ' : ''}${k}: ${formatPrimitive(v)}`);
+        }
+      });
+    }
+  } else {
+    lines.push(`${pad}${keyName !== null ? keyName + ': ' : ''}${formatPrimitive(value)}`);
+  }
+
+  return lines;
+}
+
+function formatPrimitive(v) {
+  if (typeof v === 'string') return v;
+  if (typeof v === 'boolean') return v ? 'true' : 'false';
+  return String(v);
+}
+
+// --- Render text onto canvas with auto font sizing ------------------------
+function wrapLine(ctx, line, maxWidth, fontSize) {
+  // Preserve leading indentation, wrap the rest
+  const leadingSpaces = line.match(/^(\s*)/)[0];
+  const content = line.slice(leadingSpaces.length);
+  if (content === '') return [line];
+
+  const words = content.split(' ');
+  const wrapped = [];
+  let current = leadingSpaces;
+  let isFirst = true;
+
+  for (const word of words) {
+    const candidate = isFirst ? current + word : current + ' ' + word;
+    if (ctx.measureText(candidate).width <= maxWidth || current.trim() === '') {
+      current = candidate;
+      isFirst = false;
+    } else {
+      wrapped.push(current);
+      current = leadingSpaces + word;
+      isFirst = false;
+    }
+  }
+  wrapped.push(current);
+  return wrapped;
+}
+
+function renderToCanvas(text) {
+  const WIDTH = canvas.width;
+  const HEIGHT = canvas.height;
+  const PADDING = Math.round(Math.min(WIDTH, HEIGHT) * 0.044); // ~90px at 2048
+  const maxWidth = WIDTH - PADDING * 2;
+  const maxHeight = HEIGHT - PADDING * 2;
+  const rawLines = text.split('\n');
+
+  // Binary search for the largest font size that fits
+  let lo = 8, hi = 70, best = 8, bestLines = rawLines;
+
+  while (lo <= hi) {
+    const mid = Math.floor((lo + hi) / 2);
+    ctx.font = buildFont(mid);
+    ctx.fontKerning = 'normal';
+    const lineHeight = mid * 1.2;
+
+    let wrapped = [];
+    for (const line of rawLines) {
+      wrapped.push(...wrapLine(ctx, line, maxWidth, mid));
+    }
+
+    const totalHeight = wrapped.length * lineHeight;
+    const widestLine = Math.max(...wrapped.map(l => ctx.measureText(l).width), 0);
+
+    if (totalHeight <= maxHeight && widestLine <= maxWidth) {
+      best = mid;
+      bestLines = wrapped;
+      lo = mid + 1;
+    } else {
+      hi = mid - 1;
+    }
+  }
+
+  const fontSize = best;
+  const lineHeight = fontSize * 1.2;
+  ctx.font = buildFont(fontSize);
+  ctx.fontKerning = 'normal';
+
+  // Draw
+  ctx.fillStyle = '#ffffff';
+  ctx.fillRect(0, 0, WIDTH, HEIGHT);
+  ctx.fillStyle = '#1a1a1a';
+  ctx.textBaseline = 'top';
+
+  const totalHeight = bestLines.length * lineHeight;
+  let y = (HEIGHT - totalHeight) / 2; // vertically center
+  if (y < PADDING) y = PADDING;
+
+  for (const line of bestLines) {
+    ctx.fillText(line, PADDING, y);
+    y += lineHeight;
+  }
+
+  return { fontSize, lineCount: bestLines.length };
+}
+
+function getFontFamily() {
+  return "'SF Mono', 'Cascadia Code', 'Fira Code', Consolas, 'Courier New', monospace";
+}
+
+function buildFont(size) {
+  return `600 ${size}px ${getFontFamily()}`;
+}
+
+// --- Main flow --------------------------------------------------------------
+generateBtn.addEventListener('click', () => {
+  errorEl.textContent = '';
+  const raw = jsonInput.value.trim();
+
+  if (!raw) {
+    errorEl.textContent = 'Please paste some JSON first.';
+    previewWrap.classList.remove('visible');
+    return;
+  }
+
+  let text;
+  let parsed;
+  try {
+    parsed = JSON.parse(raw);
+    const lines = jsonToText(parsed);
+    text = lines.join('\n');
+  } catch (e) {
+    // Not valid JSON — treat input as plain text as-is
+    text = raw;
+  }
+
+  // Remove empty lines before rendering
+  text = text.split('\n').filter(line => line.trim() !== '').join('\n');
+
+  canvas.width = selectedAspect.w;
+  canvas.height = selectedAspect.h;
+
+  const { fontSize, lineCount } = renderToCanvas(text);
+
+  const inputType = (parsed !== undefined) ? 'JSON detected' : 'plain text';
+  metaEl.textContent = `From ${raw.length} to ${text.length} symbols · ${inputType} · font size: ${fontSize}px · ${lineCount} lines`;
+  previewWrap.classList.add('visible');
+});
+
+downloadBtn.addEventListener('click', () => {
+  let dataUrl;
+  try {
+    dataUrl = canvas.toDataURL('image/png');
+  } catch (e) {
+    errorEl.textContent = 'Could not create image for download: ' + e.message;
+    return;
+  }
+
+  // Try a normal download first.
+  const link = document.createElement('a');
+  link.download = 'json-text-image.png';
+  link.href = dataUrl;
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+
+  // Fallback for environments where the download attribute is ignored
+  // (e.g. some mobile webviews): also open the image in a new tab so
+  // the user can long-press / right-click to save it. Done synchronously
+  // so it stays within the user-gesture context for popup permissions.
+  window.open(dataUrl, '_blank');
+});
+</script>
+
+</body>
+</html>
