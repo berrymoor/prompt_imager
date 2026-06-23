@@ -43,23 +43,8 @@ When working with advanced generative models like **Nano Banana**, **GPT Image**
 ### Basic Workflow
 
 1. **Prepare Your Prompt**
-   - Structure your instructions as JSON for maximum clarity:
-   ```json
-   {
-     "subject": "futuristic cityscape",
-     "style": {
-       "art_direction": "cyberpunk aesthetic",
-       "color_palette": ["neon blue", "electric pink", "deep purple"],
-       "lighting": "dramatic backlighting"
-     },
-     "technical_specs": {
-       "resolution": "4K",
-       "aspect_ratio": "16:9",
-       "motion": "subtle camera pan"
-     },
-     "reference_instruction": "Use text from reference image as guide for generation"
-   }
-   ```
+   Use plain text or a structured in JSON format. For example, long prompts copied from the web that do not fit and exceed the allowed number of characters in the text field.
+   
 
 2. **Paste into Prompt Imager**
    - Open the web interface
