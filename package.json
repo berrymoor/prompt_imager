@@ -1,0 +1,20 @@
+{
+  "name": "prompt-imager",
+  "version": "0.2.0",
+  "description": "Transform your long prompts into structured, shareable images",
+  "main": "index.html",
+  "scripts": {
+    "test": "echo \"No tests configured\" && exit 0"
+  },
+  "keywords": [
+    "prompt",
+    "image",
+    "ai",
+    "generator"
+  ],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@vercel/analytics": "^2.0.1"
+  }
+}

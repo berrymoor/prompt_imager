@@ -5,6 +5,10 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>JSON → Image</title>
+<script>
+  window.va = window.va || function () { (window.vaq = window.vaq || []).push(arguments); };
+</script>
+<script defer src="/_vercel/insights/script.js"></script>
 <style>
   :root {
     --bg: #020617;
@@ -186,7 +190,7 @@
 
   </div>
 
-<script>
+<script type="module">
 const jsonInput = document.getElementById('jsonInput');
 const generateBtn = document.getElementById('generateBtn');
 const downloadBtn = document.getElementById('downloadBtn');
@@ -387,8 +391,21 @@ generateBtn.addEventListener('click', () => {
   const { fontSize, lineCount } = renderToCanvas(text);
 
   const inputType = (parsed !== undefined) ? 'JSON detected' : 'plain text';
-  metaEl.textContent = `From ${raw.length} to ${text.length} symbols · ${inputType} · font size: ${fontSize}px · ${lineCount} lines`;
+  metaEl.textContent = `Reduced from ${raw.length} to ${text.length} symbols · ${inputType} · font size: ${fontSize}px`;
   previewWrap.classList.add('visible');
+
+  try {
+    track('generate_image', {
+      format: `${selectedAspect.w}x${selectedAspect.h}`,
+      inputType,
+      rawLength: raw.length,
+      textLength: text.length,
+      fontSize,
+      lines: lineCount
+    });
+  } catch (e) {
+    console.warn('Analytics event failed:', e);
+  }
 });
 
 downloadBtn.addEventListener('click', () => {
@@ -413,6 +430,15 @@ downloadBtn.addEventListener('click', () => {
   // the user can long-press / right-click to save it. Done synchronously
   // so it stays within the user-gesture context for popup permissions.
   window.open(dataUrl, '_blank');
+
+  try {
+    track('download_image', {
+      format: `${canvas.width}x${canvas.height}`,
+      outputName: 'json-text-image.png'
+    });
+  } catch (e) {
+    console.warn('Analytics event failed:', e);
+  }
 });
 </script>
 
